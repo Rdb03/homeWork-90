@@ -1,6 +1,6 @@
 import Tool from "./Tool";
 
-export default class Rect extends Tool {
+export default class Circle extends Tool {
     private mouseDown: boolean | undefined;
     private saved!:  string;
     private startX: number | undefined;
@@ -9,7 +9,7 @@ export default class Rect extends Tool {
 
     constructor(canvas: HTMLCanvasElement) {
         super(canvas);
-        this.listen();
+        this.listen()
     }
 
     listen() {
@@ -18,41 +18,42 @@ export default class Rect extends Tool {
         this.canvas.onmouseup = (e: MouseEvent) => this.mouseUpHandler(e);
     }
 
-    mouseUpHandler(_e: MouseEvent) {
-        this.mouseDown = false;
-    }
-
     mouseDownHandler(e: MouseEvent) {
-        this.mouseDown = true;
-        this.ctx.beginPath();
+        this.mouseDown = true
+        let canvasData = this.canvas.toDataURL()
+        this.ctx.beginPath()
         const target = e.target as HTMLElement;
         this.startX = e.pageX - target.offsetLeft;
         this.startY = e.pageY - target.offsetTop;
-        this.saved = this.canvas.toDataURL();
+        this.saved = canvasData
+    }
+
+    mouseUpHandler(_e: MouseEvent) {
+        this.mouseDown = false
     }
 
     mouseMoveHandler(e: MouseEvent) {
-        if (this.mouseDown && this.startX !== undefined && this.startY !== undefined) {
+        if(this.mouseDown && this.startX !== undefined && this.startY !== undefined) {
             const target = e.target as HTMLElement;
-            const currentX = e.pageX - target.offsetLeft;
-            const currentY = e.pageY - target.offsetTop;
-            const width = currentX - this.startX;
-            const height = currentY - this.startY;
-            this.draw(this.startX, this.startY, width, height);
+            let currentX =  e.pageX- target.offsetLeft
+            let currentY =  e.pageY- target.offsetTop
+            let width = currentX-this.startX
+            let height = currentY-this.startY
+            let r = Math.sqrt(width**2 + height**2)
+            this.draw(this.startX, this.startY, r)
         }
     }
 
-    draw(x: number, y: number, w: number, n: number) {
-
+    draw(x: number,y: number,r: number) {
         const img = new Image()
         img.src = this.saved
-        img.onload = () => {
-            this.ctx.clearRect(0, 0 , this.canvas.width, this.canvas.height)
+        img.onload = async () => {
+            this.ctx.clearRect(0,0, this.canvas.width, this.canvas.height)
             this.ctx.drawImage(img, 0, 0, this.canvas.width, this.canvas.height)
             this.ctx.beginPath()
-            this.ctx.rect(x, y, w, n)
+            this.ctx.arc(x, y, r, 0, 2*Math.PI)
             this.ctx.fill()
             this.ctx.stroke()
-        }
+        };Circle.bind(this)
     }
 }

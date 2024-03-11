@@ -10,6 +10,20 @@ class ToolState {
     setTool(tool: Tool) {
         this.tool = tool
     }
+
+    setFillColor(color: string | CanvasGradient | CanvasPattern) {
+        this.tool!.fillColor = color
+    }
+    setStrokeColor(color: string | CanvasGradient | CanvasPattern) {
+        this.tool!.strokeColor = color
+    }
+    setLineWidth(width: string | number) {
+        if (typeof width === 'number') {
+            this.tool!.lineWidth = width;
+        } else {
+            this.tool!.lineWidth = parseFloat(width);
+        }
+    }
 }
 
 export default new ToolState();
