@@ -5,7 +5,6 @@ export default class Eraser extends Brush {
         super(canvas);
     }
 
-
     draw(x: number, y: number) {
         this.ctx.strokeStyle = "white"
         this.ctx.lineTo(x, y)
