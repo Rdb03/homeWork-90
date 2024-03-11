@@ -1,4 +1,5 @@
 import Tool from "./Tool";
+import {a} from "vite/dist/node/types.d-AKzkD8vd";
 
 export default class Rect extends Tool {
     private mouseDown: boolean | undefined;
@@ -54,5 +55,13 @@ export default class Rect extends Tool {
             this.ctx.fill()
             this.ctx.stroke()
         }
+    }
+
+    static staticDraw(ctx: any, x: number, y: number, w: number, h: number, color:any) {
+        ctx.fillStyle = color
+        ctx.beginPath()
+        ctx.rect(x, y, w, h)
+        ctx.fill()
+        ctx.stroke()
     }
 }

@@ -1,32 +1,51 @@
 import express from 'express';
 import expressWs from 'express-ws';
 import cors from 'cors';
-import {ActiveConnections} from "./types";
 
 const app = express();
+const WSServer = require('express-ws')(app);
+const aWss = WSServer.getWss();
 expressWs(app);
 const port = 8000;
 
 app.use(cors());
 const router = express.Router();
 
-router.ws('/chat',  (ws, req) => {
-    const id = crypto.randomUUID();
-    console.log('client connected! id=', id);
-    activeConnections[id] = ws;
-
-
-
-    ws.on('close', () => {
-        console.log('client disconnected! id=', id);
-        delete activeConnections[id];
+router.ws('/paint', (ws, _req) => {
+    ws.on('message', (msg: string) => {
+        try {
+            const parsedMsg = JSON.parse(msg);
+            console.log('Received message:', parsedMsg)
+            switch (parsedMsg.method) {
+                case "connection":
+                    connectionHandler(ws, parsedMsg);
+                    break;
+                case "draw":
+                    broadcastConnection(ws, parsedMsg);
+                    break;
+                default:
+                    break;
+            }
+        } catch (error) {
+            console.error("Error parsing message:", error);
+        }
     });
 });
-
-const activeConnections: ActiveConnections = {};
-
 
 app.use(router);
 app.listen(port, () => {
     console.log(`Server started on ${port} port!`);
 });
+
+const connectionHandler = (ws: any, msg: any) => {
+    ws.id = msg.id;
+    broadcastConnection(ws, msg);
+}
+
+const broadcastConnection = (ws: any, msg: any) => {
+    aWss.clients.forEach((client: any) => {
+        if (client.id === msg.id) {
+            client.send(JSON.stringify(msg));
+        }
+    });
+}
