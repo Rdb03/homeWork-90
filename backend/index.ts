@@ -1,33 +1,32 @@
+import { WebSocket } from 'ws';
 import express from 'express';
 import expressWs from 'express-ws';
 import cors from 'cors';
 
 const app = express();
-const WSServer = require('express-ws')(app);
+const WSServer = expressWs(app);
 const aWss = WSServer.getWss();
-expressWs(app);
 const port = 8000;
 
 app.use(cors());
 const router = express.Router();
 
-router.ws('/paint', (ws, _req) => {
+interface Message {
+    method: string;
+    id: string;
+    username: string;
+}
+
+router.ws('/paint', (ws, req) => {
     ws.on('message', (msg: string) => {
-        try {
-            const parsedMsg = JSON.parse(msg);
-            console.log('Received message:', parsedMsg)
-            switch (parsedMsg.method) {
-                case "connection":
-                    connectionHandler(ws, parsedMsg);
-                    break;
-                case "draw":
-                    broadcastConnection(ws, parsedMsg);
-                    break;
-                default:
-                    break;
-            }
-        } catch (error) {
-            console.error("Error parsing message:", error);
+        const parsedMsg: Message = JSON.parse(msg);
+        switch (parsedMsg.method) {
+            case "connection":
+                connectionHandler(ws, parsedMsg);
+                break;
+            case "draw":
+                broadcastConnection(ws, parsedMsg);
+                break;
         }
     });
 });
@@ -37,15 +36,16 @@ app.listen(port, () => {
     console.log(`Server started on ${port} port!`);
 });
 
-const connectionHandler = (ws: any, msg: any) => {
+const connectionHandler = (ws: any, msg: Message) => {
     ws.id = msg.id;
     broadcastConnection(ws, msg);
 }
 
-const broadcastConnection = (ws: any, msg: any) => {
-    aWss.clients.forEach((client: any) => {
-        if (client.id === msg.id) {
+const broadcastConnection = (ws: any, msg: Message) => {
+    aWss.clients.forEach((client: WebSocket) => {
+        if ((client as any).id === msg.id) {
             client.send(JSON.stringify(msg));
         }
     });
 }
+

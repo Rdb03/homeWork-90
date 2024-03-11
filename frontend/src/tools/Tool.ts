@@ -1,11 +1,15 @@
 export default class Tool {
-    canvas: HTMLCanvasElement;
+    canvas: any;
     ctx: CanvasRenderingContext2D;
+    socket: any;
+    id: any;
 
-    constructor(canvas: HTMLCanvasElement) {
+    constructor(canvas: HTMLCanvasElement, socket: any, id: any) {
         this.canvas = canvas;
+        this.socket = socket;
+        this.id = id;
         this.ctx = canvas.getContext('2d')!;
-        this.destroyEvents()
+        this.destroyEvents();
     }
 
     set fillColor(color: string | CanvasGradient | CanvasPattern) {

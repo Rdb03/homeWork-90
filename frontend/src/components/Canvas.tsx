@@ -12,7 +12,7 @@ const Canvas = observer(() => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const usernameRef = useRef<HTMLInputElement | null>(null);
     const [modal, setModal] = useState(true);
-    const params = useParams()
+    const params = useParams();
 
     useEffect(() => {
         if (canvasState) {
@@ -20,33 +20,39 @@ const Canvas = observer(() => {
         }
     }, []);
 
-    useEffect(() => {
+
+
+    useEffect( () => {
         if (canvasState.username) {
             const socket = new WebSocket(`ws://localhost:8000/paint`);
-            canvasState.setSocket(socket)
-            canvasState.setSessionId(params.id)
-            toolState.setTool(new Brush(canvasRef.current!))
+            canvasState.setSocket(socket);
+            canvasState.setSessionId(params.id);
+            toolState.setTool(new Brush(canvasRef.current!, socket, params.id));
             socket.onopen = () => {
-                console.log('Подключение установлено')
                 socket.send(JSON.stringify({
-                    id:params.id,
+                    id: params.id,
                     username: canvasState.username,
                     method: "connection"
-                }))
+                }));
             }
             socket.onmessage = (event) => {
-                let msg = JSON.parse(event.data)
-                switch (msg.method) {
-                    case "connection":
-                        console.log(`пользователь ${msg.username} присоединился`)
-                        break
-                    case "draw":
-                        drawHandler(msg)
-                        break
+                try {
+                    let msg = JSON.parse(event.data);
+                    console.log(msg);
+                    switch (msg.method) {
+                        case "message":
+                            console.log(`пользователь ${msg.username} присоединился`);
+                            break;
+                        case "draw":
+                            drawHandler(msg);
+                            break;
+                    }
+                } catch (error) {
+                    console.error("Error parsing JSON:", error);
                 }
-            }
+            };
         }
-    }, [canvasState.username])
+    }, [canvasState.username]);
 
 
     const drawHandler = (msg: any) => {
@@ -54,6 +60,7 @@ const Canvas = observer(() => {
         const ctx = canvasRef.current!.getContext('2d')
         switch (figure.type) {
             case "brush":
+                Brush.draw(ctx, figure.x, figure.y)
                 break
             case "rect":
                 Rect.staticDraw(ctx, figure.x, figure.y, figure.width, figure.height, figure.color)
@@ -62,7 +69,7 @@ const Canvas = observer(() => {
                 ctx!.beginPath()
                 break
         }
-    }
+    };
 
 
     const mouseDownHandler = () => {

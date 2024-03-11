@@ -3,15 +3,15 @@ import Tool from "./Tool";
 export default class Brush extends Tool {
     private mouseDown: boolean | undefined;
 
-    constructor(canvas: HTMLCanvasElement) {
-        super(canvas);
+    constructor(canvas: HTMLCanvasElement, socket: any, id: any) {
+        super(canvas, socket, id);
         this.listen();
     }
 
     listen() {
-        this.canvas.onmousemove = (e: MouseEvent) => this.mouseMoveHandler(e);
-        this.canvas.onmousedown = (e: MouseEvent) => this.mouseDownHandler(e);
-        this.canvas.onmouseup = (e: MouseEvent) => this.mouseUpHandler(e);
+        this.canvas.addEventListener('mousemove', (e: MouseEvent) => this.mouseMoveHandler(e));
+        this.canvas.addEventListener('mousedown', (e: MouseEvent) => this.mouseDownHandler(e));
+        this.canvas.addEventListener('mouseup', (e: MouseEvent) => this.mouseUpHandler(e));
     }
 
     mouseUpHandler(_e: MouseEvent) {
@@ -26,14 +26,23 @@ export default class Brush extends Tool {
     }
 
     mouseMoveHandler(e: MouseEvent) {
-        if (this.mouseDown) {
+        if (this.mouseDown && this.socket) {
             const target = e.target as HTMLElement;
-            this.draw(e.pageX - target.offsetLeft, e.pageY - target.offsetTop);
+            this.socket.send(JSON.stringify({
+                method: 'draw',
+                id: this.id,
+                figure: {
+                    type: 'brush',
+                    x: e.pageX - target.offsetLeft,
+                    y: e.pageY - target.offsetTop,
+                }
+            }));
         }
     }
 
-    draw(x: number, y: number) {
-        this.ctx.lineTo(x, y);
-        this.ctx.stroke();
+    static draw(ctx: any, x: number, y: number) {
+        ctx.lineTo(x, y);
+        ctx.stroke();
     }
 }
+
