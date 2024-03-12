@@ -15,7 +15,14 @@ export default class Brush extends Tool {
     }
 
     mouseUpHandler(_e: MouseEvent) {
-        this.mouseDown = false;
+        this.mouseDown = false
+        this.socket.send(JSON.stringify({
+            method: 'draw',
+            id: this.id,
+            figure: {
+                type: 'finish',
+            }
+        }))
     }
 
     mouseDownHandler(e: MouseEvent) {
@@ -34,9 +41,9 @@ export default class Brush extends Tool {
                 figure: {
                     type: 'brush',
                     x: e.pageX - target.offsetLeft,
-                    y: e.pageY - target.offsetTop,
+                    y: e.pageY - target.offsetTop
                 }
-            }));
+            }))
         }
     }
 

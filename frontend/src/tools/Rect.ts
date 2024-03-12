@@ -1,15 +1,16 @@
 import Tool from "./Tool";
-import {a} from "vite/dist/node/types.d-AKzkD8vd";
 
 export default class Rect extends Tool {
     private mouseDown: boolean | undefined;
     private saved!:  string;
     private startX: number | undefined;
     private startY: number | undefined;
+    private width: any;
+    private height: any;
 
 
-    constructor(canvas: HTMLCanvasElement) {
-        super(canvas);
+    constructor(canvas: HTMLCanvasElement, socket: any, id: any) {
+        super(canvas, socket, id);
         this.listen();
     }
 
@@ -21,6 +22,17 @@ export default class Rect extends Tool {
 
     mouseUpHandler(_e: MouseEvent) {
         this.mouseDown = false;
+        this.socket.send(JSON.stringify({
+            method: 'draw',
+            id: this.id,
+            figure: {
+                type: 'rect',
+                x: this.startX,
+                y: this.startY,
+                width: this.width,
+                height: this.height,
+            }
+        }))
     }
 
     mouseDownHandler(e: MouseEvent) {
@@ -37,9 +49,9 @@ export default class Rect extends Tool {
             const target = e.target as HTMLElement;
             const currentX = e.pageX - target.offsetLeft;
             const currentY = e.pageY - target.offsetTop;
-            const width = currentX - this.startX;
-            const height = currentY - this.startY;
-            this.draw(this.startX, this.startY, width, height);
+            this.width = currentX - this.startX;
+            this.height = currentY - this.startY;
+            this.draw(this.startX, this.startY, this.width, this.height);
         }
     }
 
